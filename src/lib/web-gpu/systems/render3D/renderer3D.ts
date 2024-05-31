@@ -37,7 +37,7 @@ export default class Renderer3D {
       uniform.ModelMatrix = modelMatrix;
 
       const sendBuffer = uniform.getData();
-      this.device.queue.writeBuffer(this.pipeline.UniformBuffer, 0, sendBuffer)
+      this.device.queue.writeBuffer(this.pipeline.UniformBuffer, 0, sendBuffer);
 
       this.renderer.RenderPass.setPipeline(this.pipeline.pipeline);
       this.renderer.RenderPass.setBindGroup(0, this.pipeline.UniformBindGroup);

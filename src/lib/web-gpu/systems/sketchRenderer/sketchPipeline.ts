@@ -1,12 +1,11 @@
-import Vertex from "../../rendering/vertex";
-import boxShader from "../../shaders/boxShader";
+import SimpleVertex from "../../rendering/simpleVertex";
+import sketchShader from "../../shaders/sketchShader";
 
-export default class Pipeline3D {
+export default class SketchPipeline {
   private readonly device: GPUDevice;
 
   vertexLayout: GPUVertexBufferLayout
   pipeline: GPURenderPipeline;
-  pipelineLayout: GPUPipelineLayout;
 
   private uniformBuffer: GPUBuffer;
   private uniformBufferSize: number;
@@ -16,7 +15,7 @@ export default class Pipeline3D {
     this.device = device;
 
     this.vertexLayout = {
-      arrayStride: Vertex.byteLength,
+      arrayStride: SimpleVertex.byteLength,
       attributes: [
         {
           shaderLocation: 0, // Position
@@ -28,17 +27,7 @@ export default class Pipeline3D {
           offset: 12,
           format: 'float32x3'
         },
-        {
-          shaderLocation: 2, // Normal
-          offset: 24,
-          format: 'float32x3'
-        },
-        {
-          shaderLocation: 3, // UV
-          offset: 36,
-          format: 'float32x2'
-        }
-      ],
+      ]
     }
 
     this.uniformBufferSize = 64 * 3;
@@ -47,22 +36,9 @@ export default class Pipeline3D {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
     });
 
-    const bindGroupLayout = device.createBindGroupLayout({
-      entries: [
-        {
-          binding: 0,
-          visibility: GPUShaderStage.VERTEX,
-          buffer: {}
-        }
-      ]
-    })
-    this.pipelineLayout = device.createPipelineLayout({
-      bindGroupLayouts: [bindGroupLayout]
-    })
-
-    const shader = boxShader(this.device);
+    const shader = sketchShader(this.device);
     this.pipeline = this.device.createRenderPipeline({
-      label: "3D Pipeline",
+      label: "Sketch Pipeline",
       layout: "auto",
       vertex: {
         module: shader,
@@ -77,7 +53,7 @@ export default class Pipeline3D {
         }]
       },
       primitive: {
-        topology: 'triangle-list',
+        topology: 'line-strip',
         cullMode: 'back',
       },
       depthStencil: {

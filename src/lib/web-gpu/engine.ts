@@ -3,9 +3,11 @@ import Camera from "./camera";
 import type { FrameInfo } from "./frameInfo";
 import type { Delegate } from "./interfaces/delegate";
 import type Box from "./rendering/box";
+import type BuildingBlock from "./rendering/editor/buildingBlock";
 import type Quad from "./rendering/quad";
 import Renderer3D from "./systems/render3D/renderer3D";
 import Renderer from "./systems/renderer";
+import SketchRenderer from "./systems/sketchRenderer/sketchRenderer";
 
 export default class Engine {
 
@@ -27,10 +29,12 @@ export default class Engine {
 
   // systems
   private renderer3D!: Renderer3D;
+  private sketchRenderer!: SketchRenderer;
 
   // enitities
   // private quads: Quad[] = [];
   private entities: Box[] = [];
+  private editorEntities: BuildingBlock[] = [];
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -81,10 +85,17 @@ export default class Engine {
     camera.Position[1] = 0;
     camera.Position[2] = -5;
 
+    const editorCamera = new Camera(this.rightTopCanvas);
+    editorCamera.Position[0] = 0;
+    editorCamera.Position[1] = 0;
+    editorCamera.Position[2] = -5;
+
     const frameInfo: FrameInfo = {
       camera: camera,
       commandBuffer: this.renderer.CommandBuffer
     }
+
+    let delta = 0.0;
 
     const render = () => {
       const width = getWidth(document, "main-cnv");
@@ -98,14 +109,17 @@ export default class Engine {
       this.canvas.width = width;
       this.canvas.height = height;
 
+      frameInfo.camera = camera;
+      frameInfo.commandBuffer = this.renderer.CommandBuffer;
       this.renderer.beginRenderPass();
-
       this.renderer3D.render(this.entities, frameInfo);
-
       this.renderer.endRenderPass();
       this.renderer.submitCommandBuffers();
 
+      frameInfo.camera = editorCamera;
+      frameInfo.commandBuffer = this.editorRenderer.CommandBuffer;
       this.editorRenderer.beginRenderPass();
+      this.sketchRenderer.render(this.editorEntities, frameInfo);
       this.editorRenderer.endRenderPass();
       this.editorRenderer.submitCommandBuffers();
 
@@ -123,8 +137,13 @@ export default class Engine {
     this.entities.push(entity);
   }
 
+  public addBlock(block: BuildingBlock) {
+    this.editorEntities.push(block);
+  }
+
   private setupSystems(): void {
     this.renderer3D = new Renderer3D(this.device, this.renderer);
+    this.sketchRenderer = new SketchRenderer(this.device, this.editorRenderer);
   }
 
   public get Device(): GPUDevice {

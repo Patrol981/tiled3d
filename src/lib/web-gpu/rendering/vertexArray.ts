@@ -13,7 +13,7 @@ export default class VertexArray extends Float32Array {
     vertices.forEach((vertex, index) => {
       const floatArray = vertex.toFloat32Array();
       concatenatedArray.set(floatArray, index * elementSize);
-    })
+    });
 
     super(concatenatedArray);
 
