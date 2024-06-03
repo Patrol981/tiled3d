@@ -1,52 +1,21 @@
 import { getHeight, getWidth } from "../utils/window";
-import Camera from "./camera";
 import type { FrameInfo } from "./frameInfo";
 import type { Delegate } from "./interfaces/delegate";
-import type Box from "./rendering/box";
-import type BuildingBlock from "./rendering/editor/buildingBlock";
-import type Quad from "./rendering/quad";
-import Renderer3D from "./systems/render3D/renderer3D";
-import Renderer from "./systems/renderer";
-import SketchRenderer from "./systems/sketchRenderer/sketchRenderer";
+import type Universe from "./interfaces/universe";
 
 export default class Engine {
 
   private device!: GPUDevice;
   private adapter!: GPUAdapter;
 
-  private canvas: HTMLCanvasElement;
-  private rightTopCanvas: HTMLCanvasElement;
-  private rightBottomCanvas: HTMLCanvasElement;
-
-  private renderer!: Renderer;
-  private editorRenderer!: Renderer;
-  private tileRenderer!: Renderer;
-
   // delegates
   private onRender!: Delegate;
   private onUpdate!: Delegate;
   private onStart!: Delegate;
 
-  // systems
-  private renderer3D!: Renderer3D;
-  private sketchRenderer!: SketchRenderer;
-
-  // enitities
-  // private quads: Quad[] = [];
-  private entities: Box[] = [];
-  private editorEntities: BuildingBlock[] = [];
-
-  constructor(
-    canvas: HTMLCanvasElement,
-    rightTopCanvas: HTMLCanvasElement,
-    rightBottomCanvas: HTMLCanvasElement
-  ) {
-    this.canvas = canvas;
-    this.rightTopCanvas = rightTopCanvas;
-    this.rightBottomCanvas = rightBottomCanvas;
-  }
-
   public async init(): Promise<void> {
+    console.info("[ENGINE] Initializing...");
+
     if (!navigator.gpu) {
       throw new Error("WebGPU not supported on this browser.");
     }
@@ -64,68 +33,41 @@ export default class Engine {
     } else {
       throw new Error("Could not obtain device.");
     }
-
-    this.renderer = new Renderer(this.device, this.canvas);
-    await this.renderer.init(this.canvas);
-
-    this.editorRenderer = new Renderer(this.device,  this.rightTopCanvas);
-    await this.editorRenderer.init(this.rightTopCanvas);
-    this.editorRenderer.setClearValue({ r: 0.5, g: 0.3, b: 0.3, a: 1.0 });
-
-    this.tileRenderer = new Renderer(this.device, this.rightBottomCanvas);
-    await this.tileRenderer.init(this.rightBottomCanvas);
-    this.tileRenderer.setClearValue({ r: 0.1, g: 0.5, b: 0.3, a: 1.0 });
   }
 
-  public async run(): Promise<void> {
-    this.setupSystems();
-
-    const camera = new Camera(this.canvas);
-    camera.Position[0] = 0;
-    camera.Position[1] = 0;
-    camera.Position[2] = -5;
-
-    const editorCamera = new Camera(this.rightTopCanvas);
-    editorCamera.Position[0] = 0;
-    editorCamera.Position[1] = 0;
-    editorCamera.Position[2] = -5;
+  public async run(universes: Universe[]): Promise<void> {
+    for(let i=0; i<universes.length; i++) {
+      await universes[i].init(universes[i]);
+    }
 
     const frameInfo: FrameInfo = {
-      camera: camera,
-      commandBuffer: this.renderer.CommandBuffer
+      camera: universes[0].camera,
+      commandBuffer: universes[0].renderer.CommandBuffer
     }
 
     let delta = 0.0;
 
     const render = () => {
-      const width = getWidth(document, "main-cnv");
-      const height = getHeight(document, "main-cnv");
+      universes.forEach((universe, index) => {
+        const aspect = universe.canvas.width / universe.canvas.height;
+        if(aspect != universe.camera.Aspect) {
+          universe.camera.getProjectionMatrix(aspect);
+        }
 
-      const aspect = this.canvas.width / this.canvas.height;
-      if(aspect != camera.Aspect) {
-        camera.getProjectionMatrix(aspect);
-      }
+        const width = getWidth(document, universe.canvas.id);
+        const height = getHeight(document, universe.canvas.id);
 
-      this.canvas.width = width;
-      this.canvas.height = height;
+        universe.canvas.width = width;
+        universe.canvas.height = height;
 
-      frameInfo.camera = camera;
-      frameInfo.commandBuffer = this.renderer.CommandBuffer;
-      this.renderer.beginRenderPass();
-      this.renderer3D.render(this.entities, frameInfo);
-      this.renderer.endRenderPass();
-      this.renderer.submitCommandBuffers();
+        frameInfo.camera = universe.camera;
+        frameInfo.commandBuffer = universe.renderer.CommandBuffer;
 
-      frameInfo.camera = editorCamera;
-      frameInfo.commandBuffer = this.editorRenderer.CommandBuffer;
-      this.editorRenderer.beginRenderPass();
-      this.sketchRenderer.render(this.editorEntities, frameInfo);
-      this.editorRenderer.endRenderPass();
-      this.editorRenderer.submitCommandBuffers();
-
-      this.tileRenderer.beginRenderPass();
-      this.tileRenderer.endRenderPass();
-      this.tileRenderer.submitCommandBuffers();
+        universe.renderer.beginRenderPass();
+        universe.system?.render(universe.entities, frameInfo);
+        universe.renderer.endRenderPass();
+        universe.renderer.submitCommandBuffers();
+      });
 
       requestAnimationFrame(render);
     }
@@ -133,30 +75,9 @@ export default class Engine {
     requestAnimationFrame(render);
   }
 
-  public addEntity(entity: Box) {
-    this.entities.push(entity);
-  }
-
-  public addBlock(block: BuildingBlock) {
-    this.editorEntities.push(block);
-  }
-
-  private setupSystems(): void {
-    this.renderer3D = new Renderer3D(this.device, this.renderer);
-    this.sketchRenderer = new SketchRenderer(this.device, this.editorRenderer);
-  }
 
   public get Device(): GPUDevice {
     return this.device;
-  }
-
-  public get Renderer(): Renderer {
-    return this.renderer;
-  }
-
-  // systems
-  public get Renderer3D(): Renderer3D {
-    return this.renderer3D;
   }
 
   public set OnStart(callback: Delegate) {

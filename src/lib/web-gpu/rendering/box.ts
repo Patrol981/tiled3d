@@ -3,8 +3,9 @@ import Mesh from "./mesh";
 import Vertex from "./vertex";
 import VertexArray from "./vertexArray";
 import Entity from "../entity";
+import type Renderable from "../interfaces/renderable";
 
-export default class Box extends Entity {
+export default class Box extends Entity implements Renderable {
   private readonly device: GPUDevice;
 
   mesh: Mesh;
@@ -100,5 +101,33 @@ export default class Box extends Entity {
     indices.push(0, 1, 5, 5, 4, 0);
 
     return indices;
+  }
+
+  public get VertexBuffer(): GPUBuffer {
+    return this.vertexBuffer;
+  }
+
+  public get IndexBuffer(): GPUBuffer {
+    return this.indexBuffer;
+  }
+
+  public get EntityData(): Entity {
+    return this;
+  }
+
+  public getIndices(): Int32Array {
+    return this.mesh.indices;
+  }
+
+  public getVertices(): Float32Array {
+    return this.mesh.vertices;
+  }
+
+  public verticesLength(): number {
+    return this.mesh.vertices.verticesLength;
+  }
+
+  public indicesLength(): number {
+    return this.mesh.indices.length;
   }
 }

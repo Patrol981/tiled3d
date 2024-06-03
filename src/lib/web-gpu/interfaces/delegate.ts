@@ -2,4 +2,6 @@ interface Delegate {
   (task: void): void
 }
 
-export type { Delegate };
+type MouseEventDelegate = (event: MouseEvent) => void;
+
+export type { Delegate, MouseEventDelegate };

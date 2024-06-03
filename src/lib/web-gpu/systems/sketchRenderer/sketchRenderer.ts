@@ -1,10 +1,11 @@
 import type { FrameInfo } from "../../frameInfo";
-import type BuildingBlock from "../../rendering/editor/buildingBlock";
+import type Renderable from "../../interfaces/renderable";
+import type System from "../../interfaces/system";
 import type Renderer from "../renderer";
 import SketchPipeline from "./sketchPipeline";
 import SketchUniform from "./sketchUniform";
 
-export default class SketchRenderer {
+export default class SketchRenderer implements System {
   private readonly device: GPUDevice;
   private readonly renderer: Renderer;
 
@@ -17,14 +18,9 @@ export default class SketchRenderer {
     this.pipeline = new SketchPipeline(this.device, this.renderer.CanvasFormat);
   }
 
-  public render(entities: BuildingBlock[], frameInfo: FrameInfo): void {
-    frameInfo.camera.Position[0] += 0.01;
-    if(frameInfo.camera.Position[0] > 2) {
-      frameInfo.camera.Position[0] = 0;
-    }
-
+  public render(entities: Renderable[], frameInfo: FrameInfo): void {
     for(let i = 0; i < entities.length; i++) {
-      const modelMatrix = entities[i].WorldMatrix as Float32Array;
+      const modelMatrix = entities[i].EntityData.WorldMatrix as Float32Array;
       const viewMatrix = frameInfo.camera.getViewMatrix() as Float32Array;
       const projectionMatrix = frameInfo.camera.ProjectionMatrix as Float32Array;
 
@@ -39,8 +35,8 @@ export default class SketchRenderer {
       this.renderer.RenderPass.setPipeline(this.pipeline.pipeline);
       this.renderer.RenderPass.setBindGroup(0, this.pipeline.UniformBindGroup);
 
-      this.renderer.RenderPass.setVertexBuffer(0, entities[i].vertexBuffer);
-      this.renderer.RenderPass.draw(entities[i].verticesLength);
+      this.renderer.RenderPass.setVertexBuffer(0, entities[i].VertexBuffer);
+      this.renderer.RenderPass.draw(entities[i].verticesLength());
     }
   }
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import Application from "./lib/web-gpu/application";
+  import Application from "./lib/tiled3d/application";
 
   let cnv: HTMLCanvasElement;
   let rightTopCnv: HTMLCanvasElement;
@@ -14,7 +14,7 @@
   });
 </script>
 
-<main>
+<main on:contextmenu|preventDefault>
   <canvas id="main-cnv" bind:this={cnv}></canvas>
   <canvas id="right-top-cnv" bind:this={rightTopCnv}></canvas>
   <canvas id="right-bottom-cnv" bind:this={rightBottomCnv}></canvas>

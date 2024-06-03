@@ -1,8 +1,9 @@
 import type { Vec3 } from "wgpu-matrix";
 import Entity from "../../entity";
 import SimpleVertex from "../simpleVertex";
+import type Renderable from "../../interfaces/renderable";
 
-export default class BuildingBlock extends Entity {
+export default class BuildingBlock extends Entity implements Renderable {
   private readonly device: GPUDevice;
 
   private positions: SimpleVertex[] = [];
@@ -61,7 +62,31 @@ export default class BuildingBlock extends Entity {
     this.vertexBuffer.unmap();
   }
 
-  public get verticesLength(): number {
+  public verticesLength(): number {
     return this.positions.length;
+  }
+
+  public indicesLength(): number {
+    return 0;
+  }
+
+  public getIndices(): Int32Array {
+    return new Int32Array(0);
+  }
+
+  public getVertices(): Float32Array {
+    return this.getData();
+  }
+
+  public get VertexBuffer(): GPUBuffer {
+    return this.vertexBuffer;
+  }
+
+  public get IndexBuffer(): GPUBuffer {
+    return null!;
+  }
+
+  public get EntityData(): Entity {
+    return this;
   }
 }
