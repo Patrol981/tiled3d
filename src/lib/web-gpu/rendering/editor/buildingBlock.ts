@@ -11,6 +11,7 @@ export default class BuildingBlock extends Entity implements Renderable {
   private readonly device: GPUDevice;
 
   private positions: SimpleVertex[] = [];
+  private actualPositions: SimpleVertex[] = this.positions;
   private meshCallback: MeshDelegate = null!;
 
   vertexBuffer!: GPUBuffer;
@@ -25,6 +26,7 @@ export default class BuildingBlock extends Entity implements Renderable {
 
   public addPosition(pos: Vec3): void {
     this.positions.push(new SimpleVertex(pos, [1.0, 1.0, 1.0]));
+    this.actualPositions = [...this.positions, this.positions[0]];
     this.recreateBuffer();
     this.generateMesh();
   }
@@ -33,6 +35,7 @@ export default class BuildingBlock extends Entity implements Renderable {
     for(let i = 0; i < pos.length; i++) {
       this.positions.push(new SimpleVertex(pos[i], [1.0, 1.0, 1.0]));
     }
+    this.actualPositions = [...this.positions, this.positions[0]];
     this.recreateBuffer();
     this.generateMesh();
   }
@@ -42,14 +45,13 @@ export default class BuildingBlock extends Entity implements Renderable {
   }
 
   public generateMesh() {
-    const vertices: Vertex[] = this.positions.map(simpleVertex => {
+    const vertices: Vertex[] = this.actualPositions.map(simpleVertex => {
       const position = simpleVertex.position;
       const color = simpleVertex.color;
       const normal: Vec3 = [0,-1,0];
       const uv: Vec2 = [0,0];
       return new Vertex(position, color, normal, uv);
     });
-    vertices.push(vertices[0]);
 
     const mesh = new Mesh();
     mesh.vertices = new VertexArray(vertices);
@@ -65,10 +67,10 @@ export default class BuildingBlock extends Entity implements Renderable {
   }
 
   public getData(): Float32Array {
-    if (this.positions.length < 1) return new Float32Array(0);
+    if (this.actualPositions.length < 1) return new Float32Array(0);
     const elementSize = 6;
-    const floatData = new Float32Array(elementSize * this.positions.length);
-    this.positions.forEach((vertex, index) => {
+    const floatData = new Float32Array(elementSize * this.actualPositions.length);
+    this.actualPositions.forEach((vertex, index) => {
       const dataArray = vertex.toFloat32Array();
       floatData.set(dataArray, index * elementSize);
     });
@@ -89,7 +91,7 @@ export default class BuildingBlock extends Entity implements Renderable {
   }
 
   public verticesLength(): number {
-    return this.positions.length;
+    return this.actualPositions.length;
   }
 
   public indicesLength(): number {

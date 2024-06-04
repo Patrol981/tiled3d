@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import Application from "./lib/tiled3d/application";
   import Toolbar from "./components/Toolbar.svelte";
+  import Properties from "./components/Properties.svelte";
 
   let cnv: HTMLCanvasElement;
   let rightTopCnv: HTMLCanvasElement;
@@ -21,6 +22,7 @@
   <canvas id="right-bottom-cnv" bind:this={rightBottomCnv}></canvas>
 
   <Toolbar />
+  <Properties />
 </main>
 
 <style>

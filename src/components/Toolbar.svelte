@@ -1,11 +1,15 @@
 <script lang="ts">
   import { sineInOut } from "svelte/easing";
   import { fade, scale } from "svelte/transition";
-
-  const animate = (node: any, args: any) =>
-    args.cond ? fade(node, args) : scale(node, args);
+  import { isPropertiesTabOpen } from "../store/propertiesStore";
 
   let expanded = false;
+
+  let propertiesExpanded = false;
+
+  isPropertiesTabOpen.subscribe((value) => {
+    propertiesExpanded = value;
+  });
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -28,9 +32,27 @@
         easing: sineInOut,
       }}
     >
-      <img src="right_panel.svg" alt="" />
-      <img src="upload.svg" alt="" />
-      <img src="download.svg" alt="" />
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-missing-attribute -->
+      <a
+        role="button"
+        tabindex="0"
+        on:click={() => {
+          isPropertiesTabOpen.set(!propertiesExpanded);
+        }}
+      >
+        <img src="right_panel.svg" alt="" />
+      </a>
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-missing-attribute -->
+      <a>
+        <img src="upload.svg" alt="" />
+      </a>
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-missing-attribute -->
+      <a>
+        <img src="download.svg" alt="" />
+      </a>
     </span>
   {:else}
     <span id="collapsed">
@@ -68,14 +90,18 @@
     height: 100%;
   }
 
+  div a {
+    height: 100%;
+  }
+
   div img {
-    height: 90%;
+    height: 100%;
     width: auto;
     margin-left: 0.5em;
     margin-right: 0.5em;
   }
 
-  div img:hover {
+  div a:hover {
     cursor: pointer;
     filter: invert(20%) sepia(57%) saturate(4241%) hue-rotate(350deg)
       brightness(94%) contrast(89%);
