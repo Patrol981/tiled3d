@@ -78,7 +78,10 @@ export default class BuildingBlock extends Entity implements Renderable {
   }
 
   private recreateBuffer() {
-    this.vertexBuffer?.destroy();
+    if (this.vertexBuffer) {
+      this.vertexBuffer.destroy();
+      this.vertexBuffer = null!;
+    }
     const data = this.getData();
     this.vertexBuffer = this.device.createBuffer({
       label: "block vertex buffer",

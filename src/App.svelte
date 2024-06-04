@@ -3,6 +3,7 @@
   import Application from "./lib/tiled3d/application";
   import Toolbar from "./components/Toolbar.svelte";
   import Properties from "./components/Properties.svelte";
+  import PerformanceOverlay from "./components/PerformanceOverlay.svelte";
 
   let cnv: HTMLCanvasElement;
   let rightTopCnv: HTMLCanvasElement;
@@ -23,6 +24,7 @@
 
   <Toolbar />
   <Properties />
+  <PerformanceOverlay />
 </main>
 
 <style>

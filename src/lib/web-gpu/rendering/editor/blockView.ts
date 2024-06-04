@@ -25,7 +25,10 @@ export default class BlockView extends Entity implements Renderable {
   }
 
   recreateBuffers(): void {
-    this.vertexBuffer?.destroy();
+    if(this.vertexBuffer) {
+      this.vertexBuffer.destroy();
+      this.vertexBuffer = null!;
+    }
     this.vertexBuffer = this.device.createBuffer({
       label: "block view buffer",
       size: this.mesh.vertices.byteLength,

@@ -1,7 +1,9 @@
+import { getWebGPUMemoryUsage } from "../utils/memory";
 import { getHeight, getWidth } from "../utils/window";
 import type { FrameInfo } from "./frameInfo";
 import type { Delegate } from "./interfaces/delegate";
 import type Universe from "./interfaces/universe";
+import { perfInfo } from "../../store/engineStore";
 
 export default class Engine {
 
@@ -38,6 +40,7 @@ export default class Engine {
   public async run(universes: Universe[]): Promise<void> {
     for(let i=0; i<universes.length; i++) {
       await universes[i].init(universes[i]);
+      universes[i].canvas.addEventListener('contextloss', this.handleContextLoss, false);
     }
 
     const frameInfo: FrameInfo = {
@@ -69,12 +72,18 @@ export default class Engine {
         universe.renderer.submitCommandBuffers();
       });
 
+      const info = getWebGPUMemoryUsage(this.device);
+      perfInfo.set(info);
+
       requestAnimationFrame(render);
     }
 
     requestAnimationFrame(render);
   }
 
+  private handleContextLoss(event: any) {
+    console.log("[PANIC] Context Lost!");
+  }
 
   public get Device(): GPUDevice {
     return this.device;
