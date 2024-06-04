@@ -21,16 +21,15 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 21
-          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: yarn install
 
       - name: build
         env:
           BASE_PATH: '/tiled3d'
         run: |
-          npm run build
+          yarn build
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v1
