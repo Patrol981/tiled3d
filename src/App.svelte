@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Application from "./lib/tiled3d/application";
+  import Toolbar from "./components/Toolbar.svelte";
 
   let cnv: HTMLCanvasElement;
   let rightTopCnv: HTMLCanvasElement;
@@ -18,6 +19,8 @@
   <canvas id="main-cnv" bind:this={cnv}></canvas>
   <canvas id="right-top-cnv" bind:this={rightTopCnv}></canvas>
   <canvas id="right-bottom-cnv" bind:this={rightBottomCnv}></canvas>
+
+  <Toolbar />
 </main>
 
 <style>

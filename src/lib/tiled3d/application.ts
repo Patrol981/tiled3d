@@ -1,16 +1,19 @@
 import Camera from "../web-gpu/camera";
 import Engine from "../web-gpu/engine";
+import { MouseKey } from "../web-gpu/enums/mouseKey";
 import { createMouseHold } from "../web-gpu/input";
 import type { MouseEventDelegate } from "../web-gpu/interfaces/delegate";
 import type Universe from "../web-gpu/interfaces/universe";
-import { mouseToWorld3D } from "../web-gpu/math/ray";
+import { getMouseRayInWorldSpace, mouseToWorld3D } from "../web-gpu/math/ray";
 import Mouse from "../web-gpu/mouse";
 import Box from "../web-gpu/rendering/box";
+import BlockView from "../web-gpu/rendering/editor/blockView";
 import BuildingBlock from "../web-gpu/rendering/editor/buildingBlock";
+import type Mesh from "../web-gpu/rendering/mesh";
 import Renderer3D from "../web-gpu/systems/render3D/renderer3D";
 import Renderer from "../web-gpu/systems/renderer";
 import SketchRenderer from "../web-gpu/systems/sketchRenderer/sketchRenderer";
-import { handleRightClick } from "./mouseUtils";
+import { panCamera3D, panCameraTopDown } from "./mouseUtils";
 
 export default class Application {
   private engine: Engine;
@@ -50,11 +53,15 @@ export default class Application {
 
   private async createUniverses(): Promise<void> {
     const box = new Box(this.engine.Device);
+    const blockView = new BlockView(this.engine.Device);
     const block = new BuildingBlock(this.engine.Device);
-    block.addPosition([0, 0, 0]);
-    block.addPosition([1, 0, 0]);
-    block.addPosition([1, 0, 1]);
-    block.addPosition([0, 0, 1]);
+    block.setupMeshCallcack((mesh: Mesh) => blockView.onMeshCallback(mesh));
+    block.addPositions([
+      [0, 0, 0],
+      [1, 0, 0],
+      // [1, 0, 1],
+      // [0, 0, 1]
+    ]);
 
     const viewUniverse: Universe = {
       label: "View Universe",
@@ -64,7 +71,7 @@ export default class Application {
       system: undefined,
       canvas: this.viewCanvas,
       init: this.setupViewUniverse,
-      entities: [box]
+      entities: [blockView]
     }
     this.universes.push(viewUniverse);
 
@@ -91,6 +98,14 @@ export default class Application {
       entities: []
     }
     this.universes.push(tileUniverse);
+
+    sketchUniverse.friendUniverses = {
+      "viewUniverse": viewUniverse
+    };
+    viewUniverse.friendUniverses = {
+      "sketchUniverse": sketchUniverse
+    };
+
   }
 
   private async setupSketchUniverse(sketchUniverse: Universe): Promise<void> {
@@ -106,15 +121,25 @@ export default class Application {
     sketchUniverse.camera.Pitch = 90;
     sketchUniverse.camera.Yaw = 90;
 
+    const mouse = new Mouse();
+    const viewRightClick: MouseEventDelegate = (event: MouseEvent) => {
+      panCameraTopDown(event, sketchUniverse.canvas, sketchUniverse.camera, mouse);
+    }
+
+    const hold = createMouseHold(sketchUniverse.canvas, viewRightClick, MouseKey.Left);
+    hold();
+
     sketchUniverse.canvas.addEventListener('contextmenu', (event) => {
       const rect = sketchUniverse.canvas.getBoundingClientRect();
       const mX = event.clientX - rect.left;
       const mY = event.clientY - rect.top;
 
-      const result = mouseToWorld3D(event, sketchUniverse.canvas, sketchUniverse.camera);
+      // const result = mouseToWorld3D(event, sketchUniverse.canvas, sketchUniverse.camera);
+      const result = getMouseRayInWorldSpace([mX, mY], sketchUniverse.canvas, sketchUniverse.camera);
 
       const target = <BuildingBlock>sketchUniverse.entities[0];
-      target.addPosition(result.point);
+      // target.addPosition([-result.point[0], 0, result.point[2]]);
+      target.addPosition([result[0], 0, result[2]]);
     });
   }
 
@@ -132,10 +157,10 @@ export default class Application {
 
     const mouse = new Mouse();
     const viewRightClick: MouseEventDelegate = (event: MouseEvent) => {
-      handleRightClick(event, viewUniverse.canvas, viewUniverse.camera, mouse);
+      panCamera3D(event, viewUniverse.canvas, viewUniverse.camera, mouse);
     }
 
-    const hold = createMouseHold(viewUniverse.canvas, viewRightClick);
+    const hold = createMouseHold(viewUniverse.canvas, viewRightClick, MouseKey.Right);
     hold();
   }
 

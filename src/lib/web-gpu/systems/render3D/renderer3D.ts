@@ -20,6 +20,8 @@ export default class Renderer3D implements System {
 
   public render(entities: Renderable[], frameInfo: FrameInfo): void {
     for (let i = 0; i < entities.length; i++) {
+      if(entities[i].verticesLength() < 1) continue;
+
       const modelMatrix = entities[i].EntityData.WorldMatrix as Float32Array;
       const viewMatrix = frameInfo.camera.getViewMatrix() as Float32Array;
       const projectionMatrix = frameInfo.camera.ProjectionMatrix as Float32Array;

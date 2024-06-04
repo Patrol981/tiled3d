@@ -23,7 +23,7 @@ export default class Renderer {
     if (context) {
       this.context = context;
     } else {
-      throw new Error("Could not setup ontext.");
+      throw new Error("Could not setup context.");
     }
 
     this.format = navigator.gpu.getPreferredCanvasFormat();
@@ -69,7 +69,7 @@ export default class Renderer {
     this.commandBuffer = this.encoder.finish();
     this.device.queue.submit([this.commandBuffer]);
 
-    // this.context.getCurrentTexture();
+    this.context.getCurrentTexture();
   }
 
   public setClearValue(color: GPUColor) {

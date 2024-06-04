@@ -88,7 +88,7 @@ function castRayIntersect(
     [rayData.direction[0] * tMax, rayData.direction[1] * tMax, rayData.direction[2] * tMax]
   );
 
-  hitResult.point = rayData.direction;
+  // hitResult.point = rayData.direction;
 
   return hitResult;
 }
@@ -112,4 +112,33 @@ function mouseToWorld3D(mouseEvent: MouseEvent, canvas: HTMLCanvasElement, camer
   return result;
 }
 
-export { mouseToWorld3D }
+function getMouseRayInWorldSpace(mousePos: Vec2, canvas: HTMLCanvasElement, camera: Camera) {
+  const ndcX = (mousePos[0] / canvas.width) * 2 - 1;
+  const ndcY = 1 - (mousePos[1] / canvas.height) * 2;
+
+  const nearPointNDC = [ndcX, ndcY, -1, 1];
+  const farPointNDC = [ndcX, ndcY, 1, 1];
+
+  const inverseProjectionMatrix = mat4.invert(camera.ProjectionMatrix);
+  const inverseViewMatrix = mat4.invert(camera.getViewMatrix());
+
+  const nearPointWorld = vec4.transformMat4(nearPointNDC, inverseProjectionMatrix);
+  const farPointWorld = vec4.transformMat4(farPointNDC, inverseProjectionMatrix);
+
+  vec4.scale(nearPointWorld, 1 / nearPointWorld[3], nearPointWorld);
+  vec4.scale(farPointWorld, 1 / farPointWorld[3], farPointWorld);
+
+  vec4.transformMat4(nearPointWorld, inverseViewMatrix, nearPointWorld);
+  vec4.transformMat4(farPointWorld, inverseViewMatrix, farPointWorld);
+
+  const rayOrigin = vec3.fromValues(nearPointWorld[0], nearPointWorld[1], nearPointWorld[2]);
+  const rayDirection = vec3.subtract(vec3.fromValues(farPointWorld[0], farPointWorld[1], farPointWorld[2]), rayOrigin);
+  vec3.normalize(rayDirection, rayDirection);
+
+  const t = -rayOrigin[1] / rayDirection[1];
+  const intersection = vec3.add(rayOrigin, vec3.scale(rayDirection, t));
+
+  return intersection;
+}
+
+export { mouseToWorld3D, getMouseRayInWorldSpace }

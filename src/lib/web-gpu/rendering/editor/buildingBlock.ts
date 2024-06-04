@@ -1,12 +1,17 @@
-import type { Vec3 } from "wgpu-matrix";
+import { vec3, type Vec2, type Vec3 } from "wgpu-matrix";
 import Entity from "../../entity";
 import SimpleVertex from "../simpleVertex";
 import type Renderable from "../../interfaces/renderable";
+import VertexArray from "../vertexArray";
+import type { MeshDelegate } from "../../interfaces/delegate";
+import Vertex from "../vertex";
+import Mesh from "../mesh";
 
 export default class BuildingBlock extends Entity implements Renderable {
   private readonly device: GPUDevice;
 
   private positions: SimpleVertex[] = [];
+  private meshCallback: MeshDelegate = null!;
 
   vertexBuffer!: GPUBuffer;
 
@@ -21,6 +26,7 @@ export default class BuildingBlock extends Entity implements Renderable {
   public addPosition(pos: Vec3): void {
     this.positions.push(new SimpleVertex(pos, [1.0, 1.0, 1.0]));
     this.recreateBuffer();
+    this.generateMesh();
   }
 
   public addPositions(pos: Vec3[]): void {
@@ -28,14 +34,34 @@ export default class BuildingBlock extends Entity implements Renderable {
       this.positions.push(new SimpleVertex(pos[i], [1.0, 1.0, 1.0]));
     }
     this.recreateBuffer();
+    this.generateMesh();
   }
 
   public removePosition(pos: Vec3): void {
 
   }
 
-  public createMesh() {
+  public generateMesh() {
+    const vertices: Vertex[] = this.positions.map(simpleVertex => {
+      const position = simpleVertex.position;
+      const color = simpleVertex.color;
+      const normal: Vec3 = [0,-1,0];
+      const uv: Vec2 = [0,0];
+      return new Vertex(position, color, normal, uv);
+    });
+    vertices.push(vertices[0]);
 
+    const mesh = new Mesh();
+    mesh.vertices = new VertexArray(vertices);
+    mesh.indices = new Int32Array(0);
+
+    if(this.meshCallback != null) {
+      this.meshCallback(mesh);
+    }
+  }
+
+  public setupMeshCallcack(meshCallback: MeshDelegate): void {
+    this.meshCallback = meshCallback;
   }
 
   public getData(): Float32Array {
