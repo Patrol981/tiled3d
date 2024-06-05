@@ -161,6 +161,8 @@ export default class Application {
       panCamera3D(event, viewUniverse.canvas, viewUniverse.camera, mouse);
     }
 
+    // viewUniverse.canvas.addEventListener('key')
+
     const hold = createMouseHold(viewUniverse.canvas, viewRightClick, MouseKey.Right);
     hold();
   }

@@ -1,4 +1,4 @@
-import { vec3, type Vec2, type Vec3 } from "wgpu-matrix";
+import { vec2, vec3, type Vec2, type Vec3 } from "wgpu-matrix";
 import Entity from "../../entity";
 import SimpleVertex from "../simpleVertex";
 import type Renderable from "../../interfaces/renderable";
@@ -6,6 +6,9 @@ import VertexArray from "../vertexArray";
 import type { MeshDelegate } from "../../interfaces/delegate";
 import Vertex from "../vertex";
 import Mesh from "../mesh";
+import { calculateNormal } from "../../math/normal";
+import { calculateUV } from "../../math/uv";
+import earcut from "earcut";
 
 export default class BuildingBlock extends Entity implements Renderable {
   private readonly device: GPUDevice;
@@ -45,19 +48,35 @@ export default class BuildingBlock extends Entity implements Renderable {
   }
 
   public generateMesh() {
-    const vertices: Vertex[] = this.actualPositions.map(simpleVertex => {
-      const position = simpleVertex.position;
-      const color = simpleVertex.color;
-      const normal: Vec3 = [0,-1,0];
-      const uv: Vec2 = [0,0];
-      return new Vertex(position, color, normal, uv);
+    const points = this.actualPositions.flatMap(vertex => {
+      return [
+        vertex.position[0],
+        vertex.position[2]
+      ]
     });
+
+    const triangles = earcut(points);
+
+    const vertices: Vertex[] = [];
+    for(let i=0; i<triangles.length; i++) {
+      const idx = triangles[i];
+      const originalPosition = this.actualPositions[idx];
+
+      vertices.push(
+        new Vertex(
+          [originalPosition.position[0], originalPosition.position[1] * 5, originalPosition.position[2]],
+          [1, 1, 1],
+          [0, 1, 0],
+          [0, 0]
+        )
+      )
+    }
 
     const mesh = new Mesh();
     mesh.vertices = new VertexArray(vertices);
     mesh.indices = new Int32Array(0);
 
-    if(this.meshCallback != null) {
+    if (this.meshCallback != null) {
       this.meshCallback(mesh);
     }
   }
