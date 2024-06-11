@@ -114,7 +114,7 @@ export default class Application {
 
     await sketchUniverse.renderer.init(sketchUniverse.canvas);
     sketchUniverse.system = new SketchRenderer(sketchUniverse.device, sketchUniverse.renderer);
-    sketchUniverse.renderer.setClearValue({ r: 0.5, g: 0.3, b: 0.3, a: 1.0 });
+    sketchUniverse.renderer.setClearValue({ r: 0.1, g: 0.1, b: 0.1, a: 1.0 });
 
     sketchUniverse.camera.Position[0] = 0;
     sketchUniverse.camera.Position[1] = -5;

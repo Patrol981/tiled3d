@@ -17,7 +17,8 @@ export default function sketchShader(device: GPUDevice): GPUShaderModule {
 
       struct VertexOutput {
         @builtin(position) Position : vec4f,
-        @location(0) color : vec3f,
+        @location(0) position : vec3f,
+        @location(1) color : vec3f,
       };
 
       @vertex
@@ -33,12 +34,19 @@ export default function sketchShader(device: GPUDevice): GPUShaderModule {
       }
 
       struct FragmentInput {
-        @location(0) color : vec3f,
+        @location(0) position : vec3f,
+        @location(1) color : vec3f,
       };
 
       @fragment
       fn fragmentMain(input: FragmentInput) -> @location(0) vec4f {
-        return vec4f(input.color, 1.0);
+        let circle_center = input.position;
+        let radius = 0.05;
+        let frag_pos = input.color.xy / vec2f(640.0, 480.0) * 2.0 - vec2f(1.0, 1.0);
+
+        let dist = distance(input.position, circle_center);
+
+        return dist + vec4f(input.color, 1.0);
       }
     `
   });

@@ -29,7 +29,9 @@ export default class BuildingBlock extends Entity implements Renderable {
 
   public addPosition(pos: Vec3): void {
     this.positions.push(new SimpleVertex(pos, [1.0, 1.0, 1.0]));
-    this.actualPositions = [...this.positions, this.positions[0]];
+    const target = this.positions[0];
+    target.color = [1, 0, 0];
+    this.actualPositions = [...this.positions, target];
     this.recreateBuffer();
     this.generateMesh();
   }
@@ -38,7 +40,9 @@ export default class BuildingBlock extends Entity implements Renderable {
     for(let i = 0; i < pos.length; i++) {
       this.positions.push(new SimpleVertex(pos[i], [1.0, 1.0, 1.0]));
     }
-    this.actualPositions = [...this.positions, this.positions[0]];
+    const target = this.positions[0];
+    target.color = [1,0,0];
+    this.actualPositions = [...this.positions, target];
     this.recreateBuffer();
     this.generateMesh();
   }
@@ -66,8 +70,8 @@ export default class BuildingBlock extends Entity implements Renderable {
         new Vertex(
           [originalPosition.position[0], originalPosition.position[1] * 5, originalPosition.position[2]],
           [1, 1, 1],
-          [0, 1, 0],
-          [0, 0]
+          [0, -1, 0],
+          calculateUV(originalPosition.position)
         )
       )
     }

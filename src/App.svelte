@@ -4,6 +4,7 @@
   import Toolbar from "./components/Toolbar.svelte";
   import Properties from "./components/Properties.svelte";
   import PerformanceOverlay from "./components/PerformanceOverlay.svelte";
+  import SketchOptions from "./components/SketchOptions.svelte";
 
   let cnv: HTMLCanvasElement;
   let rightTopCnv: HTMLCanvasElement;
@@ -22,9 +23,11 @@
   <canvas id="right-top-cnv" bind:this={rightTopCnv}></canvas>
   <canvas id="right-bottom-cnv" bind:this={rightBottomCnv}></canvas>
 
+  <PerformanceOverlay />
   <Toolbar />
   <Properties />
-  <PerformanceOverlay />
+
+  <SketchOptions />
 </main>
 
 <style>
