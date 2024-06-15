@@ -36,17 +36,17 @@ function panCameraTopDown(event: MouseEvent, canvas: HTMLCanvasElement, camera: 
     mouse.FirstMouse = false;
   }
 
-  let xOffset = mX - mouse.LastX;
-  let yOffset = mY - mouse.LastY;
+  let deltaX = mX - mouse.LastX;
+  let deltaY = mY - mouse.LastY;
   mouse.LastX = mX;
   mouse.LastY = mY;
 
   const sensitivity = 0.01;
-  xOffset *= sensitivity;
-  yOffset *= sensitivity;
+  deltaX *= sensitivity;
+  deltaY *= sensitivity;
 
-  camera.Position[0] -= xOffset;
-  camera.Position[2] += yOffset;
+  camera.Position[0] -= deltaX;
+  camera.Position[2] += deltaY;
 }
 
 export { panCamera3D, panCameraTopDown }

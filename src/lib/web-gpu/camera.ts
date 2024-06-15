@@ -100,4 +100,8 @@ export default class Camera extends Entity {
     const angle = clamp(value, 1.0, 45.0);
     this.fov = degToRad(angle);
   }
+
+  public get Right(): Vec3 {
+    return this.right;
+  }
 }

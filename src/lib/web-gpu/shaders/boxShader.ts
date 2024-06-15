@@ -44,10 +44,9 @@ export default function boxShader(devcie: GPUDevice): GPUShaderModule {
 
       @fragment
       fn fragmentMain(input: FragmentInput) -> @location(0) vec4f {
-        let lightDirection = normalize(vec3(0.0, 0.0, 1.0));
+        let lightDirection = normalize(vec3(0.0, -1.0, 0.0));
         let lightIntensity = max(dot(normalize(input.normal), lightDirection), 0.0);
         let result = lightIntensity * input.color;
-
         return vec4f(result, 1.0);
       }
     `

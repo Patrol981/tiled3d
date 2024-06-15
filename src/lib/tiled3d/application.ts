@@ -1,8 +1,8 @@
 import Camera from "../web-gpu/camera";
 import Engine from "../web-gpu/engine";
 import { MouseKey } from "../web-gpu/enums/mouseKey";
-import { createMouseHold } from "../web-gpu/input";
-import type { MouseEventDelegate } from "../web-gpu/interfaces/delegate";
+import { createKeyHold, createMouseHold } from "../web-gpu/input";
+import type { KeyEventDelegate, MouseEventDelegate } from "../web-gpu/interfaces/delegate";
 import type Universe from "../web-gpu/interfaces/universe";
 import { getMouseRayInWorldSpace, mouseToWorld3D } from "../web-gpu/math/ray";
 import Mouse from "../web-gpu/mouse";
@@ -13,6 +13,7 @@ import type Mesh from "../web-gpu/rendering/mesh";
 import Renderer3D from "../web-gpu/systems/render3D/renderer3D";
 import Renderer from "../web-gpu/systems/renderer";
 import SketchRenderer from "../web-gpu/systems/sketchRenderer/sketchRenderer";
+import { keyMovement } from "./keyboardUtils";
 import { panCamera3D, panCameraTopDown } from "./mouseUtils";
 
 export default class Application {
@@ -127,7 +128,7 @@ export default class Application {
       panCameraTopDown(event, sketchUniverse.canvas, sketchUniverse.camera, mouse);
     }
 
-    const hold = createMouseHold(sketchUniverse.canvas, viewRightClick, MouseKey.Left);
+    const hold = createMouseHold(sketchUniverse.canvas, viewRightClick, MouseKey.Left, mouse);
     hold();
 
     sketchUniverse.canvas.addEventListener('contextmenu', (event) => {
@@ -150,21 +151,32 @@ export default class Application {
     await viewUniverse.renderer.init(viewUniverse.canvas);
     viewUniverse.system = new Renderer3D(viewUniverse.device, viewUniverse.renderer);
 
-    viewUniverse.camera.Position[0] = 0;
+    /*
+    viewUniverse.camera.Position[0] = -1;
     viewUniverse.camera.Position[1] = -5;
-    viewUniverse.camera.Position[2] = 0;
+    viewUniverse.camera.Position[2] = 1;
     viewUniverse.camera.Pitch = 90;
     viewUniverse.camera.Yaw = 90;
+    */
+    viewUniverse.camera.Position[0] = 0;
+    viewUniverse.camera.Position[1] = 0;
+    viewUniverse.camera.Position[2] = 5;
+    viewUniverse.camera.Pitch = 40;
+    viewUniverse.camera.Yaw = 0;
 
     const mouse = new Mouse();
     const viewRightClick: MouseEventDelegate = (event: MouseEvent) => {
       panCamera3D(event, viewUniverse.canvas, viewUniverse.camera, mouse);
     }
+    const viewKeyboard: KeyEventDelegate = (event: KeyboardEvent) => {
+      keyMovement(event, viewUniverse.camera);
+    }
 
-    // viewUniverse.canvas.addEventListener('key')
+    const hold = createMouseHold(viewUniverse.canvas, viewRightClick, MouseKey.Right, mouse);
+    const keyHold = createKeyHold(viewUniverse.canvas, viewKeyboard);
 
-    const hold = createMouseHold(viewUniverse.canvas, viewRightClick, MouseKey.Right);
     hold();
+    keyHold();
   }
 
   private async setupTileUniverse(tileUniverse: Universe): Promise<void> {

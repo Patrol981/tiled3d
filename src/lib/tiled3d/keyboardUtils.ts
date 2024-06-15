@@ -6,7 +6,18 @@ function keyMovement(event: KeyboardEvent, camera: Camera) {
   // a = 65
   // d = 68
 
-  console.log(event.key);
+  if(event.code == "Space") {
+    camera.Position[1] -= 0.1;
+  }
+  if(event.key == "a") {
+    camera.Position[0] += 0.1;
+  }
+  if(event.key == "x") {
+    camera.Position[1] += 0.1;
+  }
+  if(event.key == "d") {
+    camera.Position[0] -= 0.1;
+  }
 }
 
 export { keyMovement }

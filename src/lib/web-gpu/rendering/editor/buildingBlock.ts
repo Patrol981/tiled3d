@@ -62,23 +62,61 @@ export default class BuildingBlock extends Entity implements Renderable {
     const triangles = earcut(points);
 
     const vertices: Vertex[] = [];
+    const topVertices: number[] = [];
+    const bottomVertices: number[] = [];
+
     for(let i=0; i<triangles.length; i++) {
       const idx = triangles[i];
       const originalPosition = this.actualPositions[idx];
+      const vertex = new Vertex(
+        [originalPosition.position[0], originalPosition.position[1], originalPosition.position[2]],
+        [1, 1, 1],
+        [0, -1, 0],
+        calculateUV(originalPosition.position)
+      );
 
-      vertices.push(
-        new Vertex(
-          [originalPosition.position[0], originalPosition.position[1] * 5, originalPosition.position[2]],
-          [1, 1, 1],
-          [0, -1, 0],
-          calculateUV(originalPosition.position)
-        )
-      )
+      vertices.push(vertex);
+      topVertices.push(vertices.length - 1);
+    }
+
+    for (let i = 0; i < triangles.length; i++) {
+      const idx = triangles[i];
+      const originalPosition = this.actualPositions[idx];
+      const vertex = new Vertex(
+        [originalPosition.position[0], originalPosition.position[1] - 1, originalPosition.position[2]],
+        [1, 1, 1],
+        [0, -1, 0],
+        calculateUV(originalPosition.position)
+      );
+
+      vertices.push(vertex);
+      bottomVertices.push(vertices.length - 1);
+    }
+
+    const indices: number[] = [];
+    for (let i = 0; i < triangles.length; i += 3) {
+      indices.push(topVertices[triangles[i]], topVertices[triangles[i + 1]], topVertices[triangles[i + 2]]);
+      indices.push(bottomVertices[triangles[i]], bottomVertices[triangles[i + 1]], bottomVertices[triangles[i + 2]]);
+    }
+    for (let i = 0; i < this.actualPositions.length; i++) {
+      const next = (i + 1) % this.actualPositions.length;
+
+      const topCurrent = topVertices[i];
+      const topNext = topVertices[next];
+      const bottomCurrent = bottomVertices[i];
+      const bottomNext = bottomVertices[next];
+
+      // First triangle of the quad
+      indices.push(topCurrent, bottomCurrent, bottomNext);
+      // Second triangle of the quad
+      indices.push(topCurrent, bottomNext, topNext);
     }
 
     const mesh = new Mesh();
     mesh.vertices = new VertexArray(vertices);
-    mesh.indices = new Int32Array(0);
+    // mesh.indices = new Int32Array(indices);
+    mesh.indices = new Int32Array(indices.length);
+    mesh.indices.set(indices);
 
     if (this.meshCallback != null) {
       this.meshCallback(mesh);

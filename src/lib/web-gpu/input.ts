@@ -1,7 +1,14 @@
 import type { MouseKey } from "./enums/mouseKey";
-import type { Delegate, MouseEventDelegate } from "./interfaces/delegate";
+import type { Delegate, KeyEventDelegate, MouseEventDelegate } from "./interfaces/delegate";
+import type Dictionary from "./interfaces/dictionary";
+import type Mouse from "./mouse";
 
-function createMouseHold(canvas: HTMLCanvasElement, callback: MouseEventDelegate, mouseKey: MouseKey) {
+function createMouseHold(
+  canvas: HTMLCanvasElement,
+  callback: MouseEventDelegate,
+  mouseKey: MouseKey,
+  mouse: Mouse
+) {
   const onHoldObject = () => {
     let isOn: boolean = false;
 
@@ -12,6 +19,7 @@ function createMouseHold(canvas: HTMLCanvasElement, callback: MouseEventDelegate
 
     canvas.addEventListener('mouseup', () => {
       isOn = false;
+      mouse.FirstMouse = true;
     });
 
     canvas.addEventListener('mousemove', (event) => {
@@ -24,4 +32,26 @@ function createMouseHold(canvas: HTMLCanvasElement, callback: MouseEventDelegate
   return onHoldObject;
 }
 
-export { createMouseHold };
+function createKeyHold(canvas: HTMLCanvasElement, callback: KeyEventDelegate) {
+  const onKeyObject = () => {
+    let isOn: boolean = false;
+
+    window.addEventListener('keydown', (event) => {
+      isOn = true;
+    });
+
+    window.addEventListener('keyup', (event) => {
+      isOn = false;
+    });
+
+    window.addEventListener('keypress', (event) => {
+      if(isOn) {
+        callback(event);
+      }
+    });
+  }
+
+  return onKeyObject;
+}
+
+export { createMouseHold, createKeyHold };
