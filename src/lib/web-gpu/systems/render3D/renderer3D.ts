@@ -22,7 +22,9 @@ export default class Renderer3D implements System {
     for (let i = 0; i < entities.length; i++) {
       if(entities[i].verticesLength() < 1) continue;
 
-      // entities[i].EntityData.Rotation[0] += 0.1;
+      // entities[i].EntityData.Rotation[1] += 0.01;
+      // console.log(entities[i].EntityData.Rotation[1]);
+      // if(entities[i].EntityData.Rotation[1] > 6) entities[i].EntityData.Rotation[1] = 0;
 
       const modelMatrix = entities[i].EntityData.WorldMatrix as Float32Array;
       const viewMatrix = frameInfo.camera.getViewMatrix() as Float32Array;
@@ -44,6 +46,7 @@ export default class Renderer3D implements System {
         this.renderer.RenderPass.setIndexBuffer(entities[i].IndexBuffer, 'uint32');
 
         this.renderer.RenderPass.drawIndexed(entities[i].indicesLength());
+
       } else {
         this.renderer.RenderPass.setVertexBuffer(0, entities[i].VertexBuffer);
         this.renderer.RenderPass.draw(entities[i].verticesLength());

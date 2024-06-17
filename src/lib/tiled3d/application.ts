@@ -57,13 +57,15 @@ export default class Application {
     const blockView = new BlockView(this.engine.Device);
     const block = new BuildingBlock(this.engine.Device);
     block.setupMeshCallcack((mesh: Mesh) => blockView.onMeshCallback(mesh));
+    /*
     block.addPositions([
-      [-1, 0, -3],
-      [1, 0, -3],
+      [-1, 0, -1],
+      // [1, 0, -1],
       // [1, 0, 1],
-      // [0, 0, 1],
+      // [-1, 0, 1],
       // [0, 0, 0]
     ]);
+    */
 
     const viewUniverse: Universe = {
       label: "View Universe",
@@ -159,10 +161,10 @@ export default class Application {
     viewUniverse.camera.Yaw = 90;
     */
     viewUniverse.camera.Position[0] = 0;
-    viewUniverse.camera.Position[1] = 0;
+    viewUniverse.camera.Position[1] = -2;
     viewUniverse.camera.Position[2] = 5;
-    viewUniverse.camera.Pitch = 40;
-    viewUniverse.camera.Yaw = 0;
+    viewUniverse.camera.Pitch = 0;
+    viewUniverse.camera.Yaw = -90;
 
     const mouse = new Mouse();
     const viewRightClick: MouseEventDelegate = (event: MouseEvent) => {

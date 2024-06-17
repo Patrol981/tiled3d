@@ -23,3 +23,11 @@ export function readFromPropertiesLocalStore(): ModelProperties[] {
   if(!properties) throw new Error("[PROPERTIES] Could not read local storage data.");
   return JSON.parse(properties);
 }
+
+export function setClearData() {
+  propertiesData.set({
+    modelProperties: [
+      {ySize: 1}
+    ]
+  });
+}

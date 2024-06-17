@@ -9,6 +9,7 @@ export default class BlockView extends Entity implements Renderable {
   private mesh: Mesh;
 
   vertexBuffer!: GPUBuffer;
+  indexBuffer!: GPUBuffer;
 
   constructor(device: GPUDevice) {
     super();
@@ -30,13 +31,26 @@ export default class BlockView extends Entity implements Renderable {
       this.vertexBuffer = null!;
     }
     this.vertexBuffer = this.device.createBuffer({
-      label: "block view buffer",
+      label: "block view vertex buffer",
       size: this.mesh.vertices.byteLength,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       mappedAtCreation: true
     });
     new Float32Array(this.vertexBuffer.getMappedRange()).set(this.mesh.vertices);
     this.vertexBuffer.unmap();
+
+    if(this.indexBuffer) {
+      this.indexBuffer.destroy();
+      this.indexBuffer = null!;
+    }
+    this.indexBuffer = this.device.createBuffer({
+      label: "block view index buffer",
+      size: this.mesh.vertices.byteLength,
+      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+      mappedAtCreation: true
+    });
+    new Int32Array(this.indexBuffer.getMappedRange()).set(this.mesh.indices);
+    this.indexBuffer.unmap();
   }
 
   public get VertexBuffer(): GPUBuffer {
@@ -44,7 +58,7 @@ export default class BlockView extends Entity implements Renderable {
   }
 
   public get IndexBuffer(): GPUBuffer {
-    return null!;
+    return this.indexBuffer;
   }
 
   public get EntityData(): Entity {
@@ -52,7 +66,7 @@ export default class BlockView extends Entity implements Renderable {
   }
 
   public getIndices(): Int32Array {
-    return new Int32Array(0);
+    return this.mesh.indices;
   }
 
   public getVertices(): Float32Array {

@@ -1,3 +1,9 @@
+<script lang="ts">
+  import ExpandView from "./ExpandView.svelte";
+
+  let expandViewOpen = false;
+</script>
+
 <div class="menu">
   <div class="menu_option">
     <button>
@@ -10,10 +16,18 @@
     </button>
   </div>
   <div class="menu_option">
-    <button>
+    <button
+      on:click={() => {
+        expandViewOpen = !expandViewOpen;
+      }}
+    >
       <img src="expand_vert.svg" alt="" />
     </button>
   </div>
+
+  {#if expandViewOpen}
+    <ExpandView />
+  {/if}
 </div>
 
 <style scoped>

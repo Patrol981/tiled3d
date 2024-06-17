@@ -9,6 +9,7 @@ import Mesh from "../mesh";
 import { calculateNormal } from "../../math/normal";
 import { calculateUV } from "../../math/uv";
 import earcut from "earcut";
+import { propertiesData } from "../../../../store/propertiesStore";
 
 export default class BuildingBlock extends Entity implements Renderable {
   private readonly device: GPUDevice;
@@ -17,12 +18,18 @@ export default class BuildingBlock extends Entity implements Renderable {
   private actualPositions: SimpleVertex[] = this.positions;
   private meshCallback: MeshDelegate = null!;
 
+  private ySize: number = 255;
+
   vertexBuffer!: GPUBuffer;
 
   constructor(device: GPUDevice) {
     super();
 
     this.device = device;
+    propertiesData.subscribe((value) => {
+      this.ySize = value.modelProperties[0].ySize;
+      this.generateMesh();
+    });
 
     this.recreateBuffer();
   }
@@ -62,61 +69,69 @@ export default class BuildingBlock extends Entity implements Renderable {
     const triangles = earcut(points);
 
     const vertices: Vertex[] = [];
-    const topVertices: number[] = [];
-    const bottomVertices: number[] = [];
+    const topVertices: Vertex[] = [];
+    const bottomVertices: Vertex[] = [];
 
-    for(let i=0; i<triangles.length; i++) {
+    for (let i = 0; i < triangles.length; i++) {
       const idx = triangles[i];
       const originalPosition = this.actualPositions[idx];
-      const vertex = new Vertex(
-        [originalPosition.position[0], originalPosition.position[1], originalPosition.position[2]],
-        [1, 1, 1],
-        [0, -1, 0],
-        calculateUV(originalPosition.position)
-      );
 
-      vertices.push(vertex);
-      topVertices.push(vertices.length - 1);
+      topVertices.push(
+        new Vertex(
+          [originalPosition.position[0], originalPosition.position[1] - this.ySize, originalPosition.position[2]],
+          [1, 1, 1],
+          [0, -1, 0],
+          calculateUV(originalPosition.position)
+        )
+      );
     }
 
     for (let i = 0; i < triangles.length; i++) {
       const idx = triangles[i];
       const originalPosition = this.actualPositions[idx];
-      const vertex = new Vertex(
-        [originalPosition.position[0], originalPosition.position[1] - 1, originalPosition.position[2]],
-        [1, 1, 1],
-        [0, -1, 0],
-        calculateUV(originalPosition.position)
+
+      bottomVertices.push(
+        new Vertex(
+          [originalPosition.position[0], originalPosition.position[1], originalPosition.position[2]],
+          [1, 1, 1],
+          [0, -1, 0],
+          calculateUV(originalPosition.position)
+        )
+      );
+    }
+
+    vertices.push(...topVertices);
+    vertices.push(...bottomVertices);
+
+    for (let i = 0; i < topVertices.length; i++) {
+      const nextIndex = (i + 1) % topVertices.length;
+
+      // Top vertices
+      const v0 = topVertices[i];
+      const v1 = topVertices[nextIndex];
+
+      // Corresponding bottom vertices
+      const v2 = bottomVertices[i];
+      const v3 = bottomVertices[nextIndex];
+
+      // First triangle (v0, v2, v1)
+      vertices.push(
+        new Vertex(v0.position, [1, 1, 1], [0, 0, -1], calculateUV(v0.position)),
+        new Vertex(v2.position, [1, 1, 1], [0, 0, -1], calculateUV(v2.position)),
+        new Vertex(v1.position, [1, 1, 1], [0, 0, -1], calculateUV(v1.position))
       );
 
-      vertices.push(vertex);
-      bottomVertices.push(vertices.length - 1);
-    }
-
-    const indices: number[] = [];
-    for (let i = 0; i < triangles.length; i += 3) {
-      indices.push(topVertices[triangles[i]], topVertices[triangles[i + 1]], topVertices[triangles[i + 2]]);
-      indices.push(bottomVertices[triangles[i]], bottomVertices[triangles[i + 1]], bottomVertices[triangles[i + 2]]);
-    }
-    for (let i = 0; i < this.actualPositions.length; i++) {
-      const next = (i + 1) % this.actualPositions.length;
-
-      const topCurrent = topVertices[i];
-      const topNext = topVertices[next];
-      const bottomCurrent = bottomVertices[i];
-      const bottomNext = bottomVertices[next];
-
-      // First triangle of the quad
-      indices.push(topCurrent, bottomCurrent, bottomNext);
-      // Second triangle of the quad
-      indices.push(topCurrent, bottomNext, topNext);
+      // Second triangle (v1, v2, v3)
+      vertices.push(
+        new Vertex(v1.position, [1, 1, 1], [0, 0, -1], calculateUV(v1.position)),
+        new Vertex(v2.position, [1, 1, 1], [0, 0, -1], calculateUV(v2.position)),
+        new Vertex(v3.position, [1, 1, 1], [0, 0, -1], calculateUV(v3.position))
+      );
     }
 
     const mesh = new Mesh();
     mesh.vertices = new VertexArray(vertices);
-    // mesh.indices = new Int32Array(indices);
-    mesh.indices = new Int32Array(indices.length);
-    mesh.indices.set(indices);
+    mesh.indices = new Int32Array(0);
 
     if (this.meshCallback != null) {
       this.meshCallback(mesh);

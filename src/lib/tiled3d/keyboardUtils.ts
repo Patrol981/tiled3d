@@ -9,6 +9,12 @@ function keyMovement(event: KeyboardEvent, camera: Camera) {
   if(event.code == "Space") {
     camera.Position[1] -= 0.1;
   }
+  if (event.key == "w") {
+    camera.Position[2] -= 0.1;
+  }
+  if (event.key == "s") {
+    camera.Position[2] += 0.1;
+  }
   if(event.key == "a") {
     camera.Position[0] += 0.1;
   }

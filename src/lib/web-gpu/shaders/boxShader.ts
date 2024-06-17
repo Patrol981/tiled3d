@@ -21,6 +21,7 @@ export default function boxShader(devcie: GPUDevice): GPUShaderModule {
         @location(0) color : vec3f,
         @location(1) normal : vec3f,
         @location(2) uv : vec2f,
+        @location(3) fragPos: vec3f
       };
 
       @vertex
@@ -32,6 +33,7 @@ export default function boxShader(devcie: GPUDevice): GPUShaderModule {
         output.color = input.color;
         output.normal = input.normal;
         output.uv = input.uv;
+        output.fragPos = output.Position.xyz;
 
         return output;
       }
@@ -40,13 +42,24 @@ export default function boxShader(devcie: GPUDevice): GPUShaderModule {
         @location(0) color : vec3f,
         @location(1) normal : vec3f,
         @location(2) uv : vec2f,
+        @location(3) fragPos: vec3f
       };
 
       @fragment
       fn fragmentMain(input: FragmentInput) -> @location(0) vec4f {
-        let lightDirection = normalize(vec3(0.0, -1.0, 0.0));
+        let lightDirection = normalize(vec3(0.0, -5.0, 0.0) - input.fragPos);
         let lightIntensity = max(dot(normalize(input.normal), lightDirection), 0.0);
-        let result = lightIntensity * input.color;
+        let lightColor = vec3f(1.0, 1.0, 1.0);
+
+        let ambientStr: f32 = 0.1;
+        let ambient: vec3f = ambientStr * lightColor;
+
+        let norm = normalize(input.normal);
+        let diff: f32 = max(dot(norm, lightDirection), 0.0);
+        let diffuse: vec3f = diff * lightColor;
+
+        let result = (ambient + diffuse) * input.color;
+
         return vec4f(result, 1.0);
       }
     `

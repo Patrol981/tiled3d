@@ -5,6 +5,7 @@
   import Properties from "./components/Properties.svelte";
   import PerformanceOverlay from "./components/PerformanceOverlay.svelte";
   import SketchOptions from "./components/SketchOptions.svelte";
+  import { setClearData } from "./store/propertiesStore";
 
   let cnv: HTMLCanvasElement;
   let rightTopCnv: HTMLCanvasElement;
@@ -13,6 +14,7 @@
   let app: Application;
 
   onMount(async () => {
+    setClearData();
     app = new Application(cnv, rightTopCnv, rightBottomCnv);
     await app.run();
   });
